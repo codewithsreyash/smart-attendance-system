@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Media files
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+
+# Environment variables
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Build outputs
+dist/
+build/

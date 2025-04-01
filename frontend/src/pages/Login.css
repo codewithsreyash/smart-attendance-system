@@ -1,0 +1,161 @@
+/* Galaxy Background Styles */
+.galaxy-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  background: linear-gradient(to bottom, #000428, #004e92);
+  animation: galaxyAnimation 50s linear infinite;
+}
+
+@keyframes galaxyAnimation {
+  0% {
+      background-position: 0% 0%;
+  }
+  100% {
+      background-position: 100% 100%;
+  }
+}
+
+.galaxy-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: twinkle 4s linear infinite;
+}
+
+@keyframes twinkle {
+  0% {
+      transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+      transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Login Form Styles */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  perspective: 1000px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.8); /* Adding transparency */
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  padding: 30px;
+  transform-style: preserve-3d; /* Enables 3D transformations */
+  transition: transform 0.3s; /* Smooth transition for hover effect */
+}
+
+.login-card:hover {
+ transform: rotateY(3deg) rotateX(3deg); /* Adds a subtle tilt on hover */
+}
+
+.login-header {
+ text-align: center; 
+ margin-bottom:30px; 
+ color:#fff; /* Adjusted text color */ 
+ text-shadow :1 px 1 px 2 px #000; /* Added text shadow */ 
+}
+
+.login-header h1 { 
+ margin :0; 
+ font-size :24 px; 
+ margin-bottom :10 px; 
+}
+
+.login-header p { 
+ color :#eee; 
+ margin :0; 
+}
+
+.login-form { 
+ display :flex; 
+ flex-direction :column; 
+ gap :20 px; 
+}
+
+.form-group { 
+ margin-bottom :20 px; 
+}
+
+.form-group label { 
+ display :block; 
+ margin-bottom :8 px; 
+ font-weight :500; 
+ color :#eee; 
+ text-shadow :1 px 1 px 2 px #000; 
+}
+
+.form-group input { 
+ width :100%; 
+ padding :12 px 15 px; 
+ border :1 px solid #ddd; 
+ border-radius :4 px; 
+ font-size :16 px; 
+ transition :border-color .3 s , box-shadow .3 s ; /* Added box-shadow transition */ 
+ background-color :rgba(255 ,255 ,255 ,0.7); /* Added transparency */ 
+ color:#333 ; 
+}
+
+.form-group input:focus { 
+ border-color :#2196f3 ;  
+ outline:none ;  
+ box-shadow :0px 0px5px rgba(33 ,150 ,243 ,0.5); /* Adds glow effect on focus */  
+}
+
+.login-button {  
+   background-color:#2196f3 ;  
+   color:white ;  
+   border:none ;  
+   border-radius :4px ;  
+   padding :12px ;  
+   font-size :16px ;  
+   cursor:pointer ;  
+   transition :background-color .3s , transform .2s ; /* Added transform transition */  
+} 
+
+.login-button:hover {  
+   background-color:#1976d2 ;  
+   transform :translateY(-2px); /* Slight lift effect on hover */  
+} 
+
+.login-button:disabled {  
+   background-color:#b0b0b0 ;  
+   cursor:not-allowed ;  
+} 
+
+.error-message {  
+   background-color:rgba(244 ,67 ,54 ,0.1);  
+   color:#f44336 ;  
+   padding :10px ;  
+   border-radius :4px ;  
+   margin-bottom :20px ;  
+   text-align:center ;  
+} 
+
+.login-footer {  
+   margin-top :30px ;  
+   text-align:center ;   
+   color:#eee ;   
+   font-size :14px ;   
+   text-shadow :1px1px2px #000;   
+} 
+
+.login-footer p {   
+    margin :5px 0;   
+}
