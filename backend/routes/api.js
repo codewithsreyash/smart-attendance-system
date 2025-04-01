@@ -1,5 +1,5 @@
-//const tf = require('@tensorflow/tfjs-node'); 
-// const faceapi = require('face-api.js');
+const tf = require('@tensorflow/tfjs'); 
+const faceapi = require('face-api.js');
 const express = require("express");
 const cors = require("cors");
 const router = express.Router();
@@ -11,15 +11,39 @@ const User = require('../models/User');
 const path = require("path");
 const { Canvas, Image, ImageData } = require("canvas");
 const fs = require('fs').promises;
+const Engagement = require('../models/Engagement');
+
+// Add engagement analytics endpoint
+router.get('/engagement-analytics', async (req, res) => {
+    try {
+      const analytics = await Engagement.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSessions: { $sum: 1 },
+            avgDuration: { $avg: "$activeDuration" },
+            avgAuthAttempts: { $avg: "$faceAuthAttempts" },
+            recentSessions: { $push: "$$ROOT" }
+          }
+        },
+        { $project: { _id: 0, recentSessions: { $slice: ["$recentSessions", 5] } } }
+      ]);
+      
+      res.send(analytics[0] || {});
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  });
+  
 
 // Log TensorFlow backend information
-//console.log(`TensorFlow backend: ${tf.getBackend()}`); // This should print 'tensorflow' if using tfjs-node
-// console.log(`faceapi.tf.getBackend(): ${faceapi.tf.getBackend()}`); // Log face-api.js backend
+console.log(`TensorFlow backend: ${tf.getBackend()}`); // This should print 'tensorflow' if using tfjs-node
+console.log(`faceapi.tf.getBackend(): ${faceapi.tf.getBackend()}`); // Log face-api.js backend
 
 // Initialize canvas and face-api.js
-// const canvas = require('canvas');
-// const { loadImage } = canvas;
-// faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+const canvas = require('canvas');
+const { loadImage } = canvas;
+faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 
 // Configuration

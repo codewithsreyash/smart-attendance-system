@@ -2,145 +2,84 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-// const port = process.env.PORT || 5000;
-require('@tensorflow/tfjs-node'); // Use '@tensorflow/tfjs-node-gpu' if using GPU
-
-const faceapi = require('face-api.js');
-tf.setBackend('tensorflow').then(() => {
-    console.log(`TensorFlow backend set to: ${tf.getBackend()}`);
-});
-
-
-// Face recognition setup
-
-const { Canvas, Image, ImageData } = require('canvas');
 const path = require('path');
 
-// Initialize canvas and patch face-api.js
-// faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+// 1. Use CPU-only TensorFlow
+const tf = require('@tensorflow/tfjs');
+require('@tensorflow/tfjs-backend-cpu'); // Explicitly load CPU backend
 
+// 2. Initialize face-api.js
+const faceapi = require('face-api.js');
+const { Canvas, Image, ImageData } = require('canvas');
+faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+
+const app = express();
 let faceModelsLoaded = false;
 
-async function loadFaceModels() {
+async function initialize() {
   try {
-    const modelPath = path.join(__dirname, 'models');
-    console.log(`Loading models from: ${modelPath}`);
+    // 3. Set CPU backend explicitly
+    await tf.setBackend('cpu');
+    await tf.ready();
+    console.log(`TensorFlow backend: ${tf.getBackend()}`);
+
+    // 4. Load face models
+    await loadFaceModels();
     
-    await Promise.all([
-      faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath).then(() => console.log("SSD MobileNetV1 loaded")),
-      faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath).then(() => console.log("Face Landmark 68 Net loaded")),
-      faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath).then(() => console.log("Face Recognition Net loaded"))
-    ]);
-    
-    faceModelsLoaded = true;
-    console.log('All face recognition models loaded successfully');
+    // 5. Start server
+    startServer();
   } catch (err) {
-    console.error('Failed to load face recognition models:', err);
+    console.error('Initialization failed:', err);
     process.exit(1);
   }
 }
 
-
-// Create Express app
-const app = express();
-
-// Load models immediately when server starts
-loadFaceModels();
-
-// Debug: Verify environment variables (only in development)
-if (process.env.NODE_ENV !== 'production') {
-    console.log('Environment Variables:', {
-        NODE_ENV: process.env.NODE_ENV,
-        MONGODB_URI: process.env.MONGODB_URI ? '*****' : 'not set',
-        PORT: process.env.PORT,
-        faceModelsLoaded // Add model status to debug output
-    });
+async function loadFaceModels() {
+  const modelPath = path.join(__dirname, 'models');
+  console.log(`Loading models from: ${modelPath}`);
+  
+  await Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath),
+    faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath),
+    faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath)
+  ]);
+  
+  faceModelsLoaded = true;
+  console.log('All models loaded successfully');
 }
 
-// Middlewares
-const corsOptions = {
+function startServer() {
+  // Middleware
+  app.use(cors({
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Database connection
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/attendance';
-const mongooseOptions = {
+  }));
+  
+  app.use(express.json());
+  
+  // Database
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/attendance', {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
-    retryWrites: true,
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 10000
-};
-
-mongoose.connect(mongoURI, mongooseOptions)
-    .then(() => console.log(`Connected to MongoDB at: ${mongoURI.split('@')[1] || mongoURI}`))
-    .catch(err => {
-        console.error('MongoDB connection error:', err);
-        process.exit(1);
+    useUnifiedTopology: true
+  }).then(() => console.log('MongoDB connected'));
+  
+  // Routes
+  app.use('/api', require('./routes/api'));
+  
+  app.get('/', (req, res) => {
+    res.json({ 
+      status: 'running',
+      backend: 'cpu',
+      models: 'loaded'
     });
+  });
 
-// Enhanced health check endpoint
-app.get('/health', (req, res) => {
-    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    res.status(200).json({
-        status: 'up',
-        database: dbStatus,
-        faceModels: faceModelsLoaded ? 'loaded' : 'loading',
-        timestamp: new Date()
-    });
-});
-
-// Make faceapi available to routes
-app.use((req, res, next) => {
-    req.faceapi = faceapi;
-    req.faceModelsLoaded = faceModelsLoaded;
-    next();
-});
-// Routes
-const routes = require('./routes/api'); // Import the routes from routes/api.js
-
-app.use('/api', routes); // Mount the routes at the /api path
-
-
-// Root route
-app.get('/', (req, res) => {
-    res.json({
-        message: 'Smart Attendance System Backend is Running',
-        version: '1.0.0',
-        faceModels: faceModelsLoaded ? 'ready' : 'initializing',
-        documentation: '/api-docs'
-    });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// Start server only if models are loaded successfully
-if (faceModelsLoaded) {
-    const PORT = process.env.PORT || 5000;
-    const server = app.listen(PORT, () => {
-        console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-        console.log(`Face models status: ${faceModelsLoaded ? 'Loaded' : 'Loading...'}`);
-    });
-
-     // Verify TensorFlow backend again after server starts
-    //  console.log(`Using TensorFlow backend after startup: ${tf.getBackend()}`);
-    
-
-    // Handle unhandled promise rejections
-    process.on('unhandledRejection', (err) => {
-        console.error('Unhandled Rejection:', err);
-        server.close(() => process.exit(1));
-    });
-} else {
-    console.error("Face models failed to load. Server will not start.");
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} (CPU mode)`);
+  });
 }
+
+// Start everything
+initialize();

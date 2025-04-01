@@ -51,4 +51,4 @@ Contributions are welcome! Please follow these steps:
 This project is licensed under the [Add license name] License. See the `LICENSE` file for details.
 
 ## Contact
-For any inquiries, please contact [SREYASH ,MO No. 8329757309] .
+For any inquiries, please contact [SREYASH ,MO No. 8329757309] , [GAURAV ,MO No. 9322090665] , [ADITYA , 8766585142].
