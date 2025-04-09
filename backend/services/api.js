@@ -1,8 +1,15 @@
-import axios from 'axios';
-
+// ... existing code ...
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // Replace with your backend base URL
-});
-
-export default api;
+    baseURL: baseURL,
+    timeout: 30000, // Increased to 30 seconds to match Dashboard
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  
+  const faceApi = axios.create({
+    baseURL: process.env.REACT_APP_FACE_API_URL || 'http://localhost:5001',
+    timeout: 30000 // Added consistent timeout
+  });
+  // ... existing code ...
     

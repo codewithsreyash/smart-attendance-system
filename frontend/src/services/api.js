@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Set up base URL from environment variable or default to localhost
-const baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const baseURL = process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 if (!process.env.REACT_APP_API_URL) {
   console.warn("REACT_APP_API_URL environment variable is not set. Using default baseURL:", baseURL);
@@ -10,10 +10,19 @@ if (!process.env.REACT_APP_API_URL) {
 // Create an Axios instance
 const api = axios.create({
   baseURL: baseURL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
-    "Content-Type": "application/json",
-  },
+    "Content-Type": "application/json"
+  }
+});
+
+// Create Face API instance - using the same baseURL as the main API
+const faceApi = axios.create({
+  baseURL: baseURL, // Use the same baseURL as the main API
+  timeout: 15000,
+  headers: {
+    "Content-Type": "multipart/form-data"
+  }
 });
 
 // Add request interceptor for auth token
@@ -80,17 +89,48 @@ export const fetchAttendanceData = async () => {
 };
 
 // 🟢 Face Authentication
-export const faceAuth = async (formData) => {
+export const faceAuth = async (imageData) => {
   try {
-    const response = await api.post("/encode", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    // Create a FormData object
+    const formData = new FormData();
+    
+    // Convert base64 to blob
+    const base64Data = imageData.split(',')[1];
+    const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+    
+    // Append the blob to FormData
+    formData.append("image", blob, "face.jpg");
+    
+    // Make the API call
+    const response = await faceApi.post("/encode", formData);
     return response.data;
   } catch (error) {
     console.error("Face Authentication Error:", error);
-    throw error; // Rethrow to handle in the component
+    throw error;
+  }
+};
+
+// 🟢 Mark Attendance
+export const markAttendance = async (userId) => {
+  try {
+    const response = await api.post("/markAttendance", { userId });
+    return response.data;
+  } catch (error) {
+    console.error("Mark Attendance Error:", error);
+    throw error;
+  }
+};
+
+// 🟢 Track Engagement
+export const trackEngagement = async (engagementData) => {
+  try {
+    const response = await api.post("/engagement", engagementData);
+    return response.data;
+  } catch (error) {
+    console.error("Track Engagement Error:", error);
+    // Don't throw error for engagement tracking to avoid disrupting user experience
+    return { success: false };
   }
 };
 
 export default api;
-

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../services/api';
+import { useNavigate, Link } from 'react-router-dom';
+import { registerUser } from '../services/api';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import Background3D from '../components/Background3D';
-import { Link } from 'react-router-dom';
 
-const LoginContainer = styled.div`
+const RegisterContainer = styled.div`
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -16,7 +15,7 @@ const LoginContainer = styled.div`
     overflow: hidden;
 `;
 
-const LoginCard = styled(motion.div)`
+const RegisterCard = styled(motion.div)`
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
@@ -92,23 +91,25 @@ const ErrorMessage = styled(motion.div)`
 `;
 
 const LinkText = styled(Link)`
-    color: #fff;
-    text-align: center;
-    display: block;
-    margin-top: 1rem;
+    color: #ff8e8e;
     text-decoration: none;
-    transition: color 0.3s ease;
-
+    font-size: 0.9rem;
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    
     &:hover {
-        color: rgba(255, 255, 255, 0.7);
+        text-decoration: underline;
     }
 `;
 
-const Login = () => {
+const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        confirmPassword: '',
+        role: 'student'
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -122,31 +123,36 @@ const Login = () => {
         setError('');
         setLoading(true);
 
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
         try {
-            const response = await loginUser(formData);
-            localStorage.setItem('token', response.token);
-            navigate('/dashboard');
+            await registerUser(formData);
+            navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
+            setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <LoginContainer>
+        <RegisterContainer>
             <Background3D />
-            <LoginCard
+            <RegisterCard
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
                 <Title
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    Welcome Back
+                    Register
                 </Title>
                 <form onSubmit={handleSubmit}>
                     <Input
@@ -171,16 +177,40 @@ const Login = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 }}
                     />
+                    <Input
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                    />
+                    <Input
+                        as="select"
+                        name="role"
+                        value={formData.role}
+                        onChange={handleChange}
+                        required
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                    >
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </Input>
                     <Button
                         type="submit"
                         disabled={loading}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Registering...' : 'Register'}
                     </Button>
                     {error && (
                         <ErrorMessage
@@ -190,13 +220,11 @@ const Login = () => {
                             {error}
                         </ErrorMessage>
                     )}
-                    <LinkText to="/register">Don't have an account? Register</LinkText>
+                    <LinkText to="/">Already have an account? Login</LinkText>
                 </form>
-            </LoginCard>
-        </LoginContainer>
+            </RegisterCard>
+        </RegisterContainer>
     );
 };
 
-export default Login;
-
-
+export default Register; 

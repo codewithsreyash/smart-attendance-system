@@ -45,6 +45,9 @@ const canvas = require('canvas');
 const { loadImage } = canvas;
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
+// Force CPU backend for TensorFlow.js
+tf.setBackend('cpu');
+faceapi.tf.setBackend('cpu');
 
 // Configuration
 const MODEL_PATH = path.join(__dirname, '../models');
@@ -139,7 +142,13 @@ async function initializeFaceRecognition() {
 
 
 // Middleware
-router.use(cors());
+router.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5001'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: false
+}));
+
 router.use(async (req, res, next) => {
     if (!modelsLoaded || !labeledFaceDescriptors) {
         return res.status(503).json({ 
@@ -221,27 +230,30 @@ router.post("/markAttendance", async (req, res) => {
     try {
         const { userId } = req.body;
         if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
+            return res.status(400).json({ success: false, message: "User ID is required" });
         }
 
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
+        // Create attendance record with the user ID
         const attendance = new Attendance({
-            userId: user._id,
-            name: user.name,
+            userId,
+            name: userId, // Using userId as name since we're using face recognition labels
             status: 'Present',
             date: new Date()
         });
 
         await attendance.save();
-        res.json({ success: true, message: "Attendance marked successfully" });
-
+        res.json({ 
+            success: true, 
+            message: "Attendance marked successfully",
+            attendance: attendance
+        });
     } catch (error) {
         console.error("Error marking attendance:", error);
-        res.status(500).json({ message: "Error marking attendance" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to mark attendance",
+            error: error.message 
+        });
     }
 });
 

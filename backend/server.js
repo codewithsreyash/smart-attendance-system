@@ -16,6 +16,13 @@ faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 const app = express();
 let faceModelsLoaded = false;
 
+// Add timeout middleware
+const timeout = require('connect-timeout');
+app.use(timeout('30s')); // Set timeout to 30 seconds
+app.use((req, res, next) => {
+  if (!req.timedout) next();
+});
+
 async function initialize() {
   try {
     // 3. Set CPU backend explicitly
@@ -75,9 +82,9 @@ function startServer() {
     });
   });
 
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} (CPU mode)`);
+  const port = process.env.PORT || 5001; // Changed default port to 5001
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
   });
 }
 
