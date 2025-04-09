@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import axios from "axios";
 
@@ -9,6 +10,7 @@ const Spinner = () => (
 );
 
 const FaceAuth = () => {
+    const navigate = useNavigate();
     const webcamRef = useRef(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -35,6 +37,28 @@ const FaceAuth = () => {
         return formData;
     };
 
+    const markAttendance = async (userId, userName, confidence) => {
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_API_URL}/attendance/mark`,
+                {
+                    userId,
+                    userName,
+                    confidence
+                }
+            );
+
+            if (response.data.success) {
+                setSuccessMessage(prev => `${prev}\nAttendance marked successfully!`);
+            } else {
+                setSuccessMessage(prev => `${prev}\n${response.data.message}`);
+            }
+        } catch (error) {
+            console.error("Error marking attendance:", error);
+            setError("Failed to mark attendance. Please try again.");
+        }
+    };
+
     const handleFaceAuth = async () => {
         setLoading(true);
         setError(null);
@@ -42,10 +66,11 @@ const FaceAuth = () => {
 
         try {
             const formData = await captureImage();
+            const faceServiceUrl = process.env.REACT_APP_FACE_SERVICE_URL || 'http://localhost:5001';
 
             // Make request to face recognition service
             const response = await axios.post(
-                `${process.env.REACT_APP_FACE_SERVICE_URL}/encode`,
+                `${faceServiceUrl}/encode`,
                 formData,
                 {
                     headers: { 
@@ -58,6 +83,18 @@ const FaceAuth = () => {
             if (response.data?.success) {
                 setIsAuthenticated(true);
                 setSuccessMessage(response.data.message);
+                
+                // Mark attendance
+                await markAttendance(
+                    response.data.name,  // Using name as userId for simplicity
+                    response.data.name,
+                    response.data.confidence
+                );
+
+                // Redirect to dashboard after 2 seconds
+                setTimeout(() => {
+                    navigate('/dashboard');
+                }, 2000);
             } else if (response.data?.message?.includes("register")) {
                 setError("Face not recognized. Would you like to register?");
                 setIsRegistering(true);
@@ -93,9 +130,10 @@ const FaceAuth = () => {
         try {
             const formData = await captureImage();
             formData.append("name", name.trim());
+            const faceServiceUrl = process.env.REACT_APP_FACE_SERVICE_URL || 'http://localhost:5001';
 
             const response = await axios.post(
-                `${process.env.REACT_APP_FACE_SERVICE_URL}/register`,
+                `${faceServiceUrl}/register`,
                 formData,
                 {
                     headers: { 
@@ -146,7 +184,9 @@ const FaceAuth = () => {
             
             {successMessage && (
                 <div className="success-message" style={{ marginTop: "20px", color: "green" }}>
-                    <p>✅ {successMessage}</p>
+                    {successMessage.split('\n').map((msg, i) => (
+                        <p key={i}>✅ {msg}</p>
+                    ))}
                 </div>
             )}
 

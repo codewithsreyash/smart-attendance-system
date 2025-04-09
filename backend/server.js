@@ -58,9 +58,10 @@ async function loadFaceModels() {
 function startServer() {
   // Middleware
   app.use(cors({
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: ['http://localhost:3000', 'http://localhost:5000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: false
   }));
   
   app.use(express.json());
@@ -73,6 +74,11 @@ function startServer() {
   
   // Routes
   app.use('/api', require('./routes/api'));
+  app.use('/api/engagement', require('./routes/engagement'));
+  
+  // Add engagement tracking middleware
+  const trackEngagement = require('./middlewares/engagement');
+  app.use(trackEngagement);
   
   app.get('/', (req, res) => {
     res.json({ 

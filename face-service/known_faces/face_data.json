@@ -1,0 +1,26 @@
+{
+  "Sreyash": [
+    {
+      "timestamp": "2025-04-09T20:00:44.643239",
+      "encoding_file": "Sreyash_0.npy"
+    }
+  ],
+  "Aditya": [
+    {
+      "timestamp": "2025-04-09T20:01:33.110674",
+      "encoding_file": "Aditya_0.npy"
+    }
+  ],
+  "darshan": [
+    {
+      "timestamp": "2025-04-09T21:31:00.346187",
+      "encoding_file": "darshan_0.npy"
+    }
+  ],
+  "Om": [
+    {
+      "timestamp": "2025-04-09T21:36:26.094337",
+      "encoding_file": "Om_0.npy"
+    }
+  ]
+}
