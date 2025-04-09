@@ -1,5 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
+    <style>
+        body {
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  height: 100vh;
+  overflow: hidden;
+  perspective: 1000px;
+  margin: 0;
+  animation: glow 10s ease-in-out infinite alternate;
+}
+
+/* Create stars */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 4px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  animation: twinkle 10s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+/* Add 3D planets */
+/* body::after {
+  content: '';
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: linear-gradient(to right, #fc5c7d, #6a82fb);
+  box-shadow: 
+    inset 20px -20px 60px rgba(0,0,0,0.5),
+    0 0 80px rgba(106, 130, 251, 0.5);
+  top: 75%;
+  left: 75%;
+  transform: translate(-50%, -50%) rotate3d(1, 0.5, 0.5, 55deg);
+  animation: orbit 30s linear infinite;
+  z-index: -2;
+} */
+
+.container, .authenticate-btn {
+  position: relative;
+  z-index: 10;
+}
+
+/* Make the authentication button glow */
+button {
+  background: linear-gradient(45deg, #00aeff, #a68eff) !important;
+  border: none !important;
+  box-shadow: 0 0 15px #a68eff !important;
+  transition: all 0.3s ease !important;
+}
+
+button:hover {
+  box-shadow: 0 0 25px #a68eff, 0 0 50px rgba(166, 142, 255, 0.5) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Add a glow to the facial recognition area */
+img {
+  border-radius: 10px !important;
+  box-shadow: 0 0 30px rgba(0, 174, 255, 0.5) !important;
+  transform: perspective(1000px) rotateY(5deg) !important;
+  transition: all 0.5s ease !important;
+}
+
+img:hover {
+  transform: perspective(1000px) rotateY(-5deg) !important;
+  box-shadow: 0 0 40px rgba(0, 174, 255, 0.8) !important;
+}
+
+/* Page title */
+h1, h2, h3 {
+  color: white !important;
+  text-shadow: 0 0 10px rgba(255,255,255,0.7) !important;
+}
+
+/* Animations */
+@keyframes twinkle {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+@keyframes orbit {
+  0% { transform: translate(-50%, -50%) rotate3d(1, 0.5, 0.5, 0deg); }
+  100% { transform: translate(-50%, -50%) rotate3d(1, 0.5, 0.5, 360deg); }
+}
+
+@keyframes glow {
+  0% { 
+    background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  }
+  50% { 
+    background: radial-gradient(ellipse at bottom, #1e2a3d 0%, #0d1016 100%);
+  }
+  100% { 
+    background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  }
+}/* Insert your provided CSS code here */
+        </style>
+        
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
